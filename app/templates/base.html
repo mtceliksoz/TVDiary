@@ -11,6 +11,8 @@
         <div>TV Diary:
             <a href={{url_for('home')}}>Home</a>
             <a href={{url_for('login')}}>Login</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+            <a href="{{ url_for('user', username=current_user.username) }}">Profile</a>
 
         </div>
         <hr>
