@@ -1,7 +1,7 @@
 from app import app, db
 from flask import render_template, flash, redirect, url_for, request
-from app.forms import LoginForm, RegistrationForm, EditProfileForm
-from app.models import User, TVShows, Movies
+from app.forms import LoginForm, RegistrationForm, EditProfileForm, PostsForm
+from app.models import User, Post
 from flask_login import current_user, login_user, logout_user, login_required
 from werkzeug.urls import url_parse
 from datetime import datetime
@@ -18,19 +18,15 @@ def before_request():
 @app.route("/home")
 @login_required
 def home():
-    tvshows = User.query.filter_by(username=current_user.username).first().tvShows
-    movies = User.query.filter_by(username=current_user.username).first().movies
-    return render_template('home.html', title='Home', tvshows=tvshows, movies=movies)
+    #posts = User.query.filter_by(username=current_user.username).first().posts
+    return render_template('home.html', title='Home')
 
 
 @app.route('/user/<username>')
 @login_required
 def user(username):
     user = User.query.filter_by(username=username).first_or_404()
-    posts = [
-        {'author': user, 'body': 'Test post #1'},
-        {'author': user, 'body': 'Test post #2'}
-    ]
+    posts = user.posts.all()
     return render_template('user.html', user=user, posts=posts)
 
 
@@ -67,6 +63,20 @@ def login():
     return render_template('login.html', title='Sign In', form=form)
 
 
+@app.route('/add_post', methods=['GET', 'POST'])
+@login_required
+def add_post():
+    form = PostsForm()
+    if form.validate_on_submit():
+        post = Post(name=form.name.data, type=form.type.data, category=form.category.data,
+                    rating= form.rating.data, body= form.body.data, author=current_user)
+        db.session.add(post)
+        db.session.commit()
+        flash('your new post added!')
+        return redirect(url_for('home'))
+    return render_template('add_post.html', title='Add new post', form=form)
+
+
 @app.route("/logout")
 def logout():
     logout_user()
@@ -77,7 +87,7 @@ def logout():
 @app.route('/edit_profile', methods=['GET', 'POST'])
 @login_required
 def edit_profile():
-    form = EditProfileForm()
+    form = EditProfileForm(current_user.username)
     if form.validate_on_submit():
         current_user.username = form.username.data
         current_user.about_me = form.about_me.data

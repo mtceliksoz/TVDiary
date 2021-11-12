@@ -13,7 +13,7 @@
     <hr>
     {% for post in posts %}
     <p>
-    {{ post.author.username }} says: <b>{{ post.body }}</b>
+    <b>{{ post.name}}</b> {{post.rating}} <br>{{ post.body }}
     </p>
     {% endfor %}
     {% if user == current_user %}
